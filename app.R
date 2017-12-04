@@ -9,75 +9,73 @@ library(googleVis)
 library(wordcloud2)
 library(shinythemes)
 library(shinydashboard)
+library(RColorBrewer)
 #################################################### clean and prepare data#########################################
 #===================================================================================================================
-
-# load dataset
-h1b <- read.csv("h1b_kaggle.csv")
-
-# get R to display unscientific notation in ggplot
-options(scipen = 10000)
-
-# trim strings in EMPLOYER_NAME to avoid messy looking in plot
-levels(h1b$EMPLOYER_NAME) <- gsub("INC", "", levels(h1b$EMPLOYER_NAME))
-levels(h1b$EMPLOYER_NAME) <- gsub("LLP", "", levels(h1b$EMPLOYER_NAME))
-levels(h1b$EMPLOYER_NAME) <- gsub("LLC", "", levels(h1b$EMPLOYER_NAME))
-
-# classify data into main categories
-h1b$JOB_TITLE <- ifelse(grepl("SOFTWARE", h1b$JOB_TITLE), "SOFTWARE DEVELOPMENT",
-                        ifelse(h1b$JOB_TITLE == "BUSINESS ANALYST", "BUSINESS ANALYST", 
-                               ifelse(grepl("CONSULTANT", h1b$JOB_TITLE), "CONSULTANT",
-                                      ifelse(h1b$JOB_TITLE == "TECHNOLOGY ANALYST - US" | h1b$JOB_TITLE == "PROGRAMMER ANALYST"|
-                                               h1b$JOB_TITLE == "SYSTEMS ANALYST" | h1b$JOB_TITLE == "COMPUTER SYSTEMS ANALYST", 
-                                             "DATABASE/DATA SCIENTIST/ANALYST",
-                                             ifelse(grepl("PROFESSOR", h1b$JOB_TITLE) | h1b$JOB_TITLE == "RESEARCH ASSOCIATE", 
-                                                    "PROFESSOR/RESEARCHER",
-                                                    ifelse(h1b$JOB_TITLE == "ACCOUNTANT", "ACCOUNTANT", "OTHERS"))))))
-## Split WORKSITE in to city and state
-h1b <- separate(h1b,WORKSITE, into = c("city","state"), sep = ",")
-h1b$state <- tolower(h1b$state) %>% str_trim()
-h1b$city <- tolower(h1b$city) %>% str_trim()
-
-
-# Determine No. of NAs and condense dataset by removing all NAs
-sum(is.na(h1b)) # 228,569 NAs in total
-
-h1b_cl <- h1b  %>%
-  select(EMPLOYER_NAME, lon, lat, city, state, JOB_TITLE, YEAR, PREVAILING_WAGE) %>% 
-  group_by(EMPLOYER_NAME) %>% 
-  na.omit(lon) %>% 
-  na.omit(lat) %>% 
-  na.omit(JOB_TITLE)
-
-# NAs check
-sum(is.na(h1b_cl)) # 0 NAs
-
-# saveRDS(h1b_cl,"h1b_cl.rds")
+# 
+# # load dataset
+# h1b <- read.csv("h1b_kaggle.csv")
+# 
+# # get R to display unscientific notation in ggplot
+# options(scipen = 10000)
+# 
+# # trim strings in EMPLOYER_NAME to avoid messy looking in plot
+# levels(h1b$EMPLOYER_NAME) <- gsub("INC", "", levels(h1b$EMPLOYER_NAME))
+# levels(h1b$EMPLOYER_NAME) <- gsub("LLP", "", levels(h1b$EMPLOYER_NAME))
+# levels(h1b$EMPLOYER_NAME) <- gsub("LLC", "", levels(h1b$EMPLOYER_NAME))
+# 
+# # classify data into mainb  categories
+# h1b$JOB_TITLE <- ifelse(grepl("SOFTWARE", h1b$JOB_TITLE), "SOFTWARE DEVELOPMENT",
+#                         ifelse(h1b$JOB_TITLE == "BUSINESS ANALYST", "BUSINESS ANALYST", 
+#                                ifelse(grepl("CONSULTANT", h1b$JOB_TITLE), "CONSULTANT",
+#                                       ifelse(h1b$JOB_TITLE == "TECHNOLOGY ANALYST - US" | h1b$JOB_TITLE == "PROGRAMMER ANALYST"|
+#                                                h1b$JOB_TITLE == "SYSTEMS ANALYST" | h1b$JOB_TITLE == "COMPUTER SYSTEMS ANALYST", 
+#                                              "DATABASE/DATA SCIENTIST/ANALYST",
+#                                              ifelse(grepl("PROFESSOR", h1b$JOB_TITLE) | h1b$JOB_TITLE == "RESEARCH ASSOCIATE", 
+#                                                     "PROFESSOR/RESEARCHER",
+#                                                     ifelse(h1b$JOB_TITLE == "ACCOUNTANT", "ACCOUNTANT", "OTHERS"))))))
+# ## Split WORKSITE in to city and state
+# h1b <- separate(h1b,WORKSITE, into = c("city","state"), sep = ",")
+# h1b$state <- tolower(h1b$state) %>% str_trim()
+# h1b$city <- tolower(h1b$city) %>% str_trim()
+# 
+# 
+# # Determine No. of NAs and condense dataset by removing all NAs
+# sum(is.na(h1b)) # 228,569 NAs in total
+# 
+# h1b_cl <- h1b  %>%
+#   select(EMPLOYER_NAME, lon, lat, city, state, JOB_TITLE, YEAR, PREVAILING_WAGE) %>% 
+#   group_by(EMPLOYER_NAME) %>% 
+#   na.omit(lon) %>% 
+#   na.omit(lat) %>% 
+#   na.omit(JOB_TITLE)
+# 
+# # NAs check
+# sum(is.na(h1b_cl)) # 0 NAs
+# 
+# # saveRDS(h1b_cl,"h1b_cl.rds")
 
 ###############################################Plot data with Shiny package#########################################
 #===================================================================================================================
-read.
+h1b <- readRDS("h1b_cl.rds")
 #######Ui Part#######
 
 ui <- dashboardPage(
-  # theme = shinytheme("sketchy"),
   dashboardHeader(
-    title = ("H1b And Salary Across US"), titleWidth = 1800
-    # h4("Group 4: Lei Duan, Qingqing Long, Xiaochen Li, Nehal Jain")
-  ),
+    title = ("H1b And Salary Across US"), titleWidth = 1800),
   
   dashboardSidebar(
     sidebarMenu(badgeColor = "olive"),
     width = 350,
     sliderInput("map_year", "Year Range", min = 2011, max = 2016,round = T,value = c(2011,2016)),
     selectInput('map_job', 'Job Title', c("ALL",levels(factor(h1b_cl$JOB_TITLE)))),
-    br(),br(),br(),br(),br(),br(),br(),br(),br(),br(),br(),br(),
+    br(),br(),br(),br(),br(),br(),br(),br(),br(),br(),br(),br(),br(),br(),
     hr(),
     sliderInput("Cf_year", "Year Range", min = 2011, max = 2016,round = T,value = c(2011,2016)),
     selectInput('Cf_job', 'Job Title', c("ALL",levels(factor(h1b_cl$JOB_TITLE)))),
+    selectInput('Cf_company', 'Top Companies', c("ALL",levels(factor(h1b_cl$state)))),
     selectInput('Cf_state1', 'State1', c(levels(factor(h1b_cl$state)))),
-    selectInput('Cf_state2', 'State2', c(levels(factor(h1b_cl$state)))),
-    selectInput('Cf_company', 'Top Companies', c("ALL",levels(factor(h1b_cl$state))))
+    selectInput('Cf_state2', 'State2', c(levels(factor(h1b_cl$state))))
   ),
   
   dashboardBody(
@@ -177,35 +175,25 @@ server <- function(input, output) {
   })    
   ####render####
   output$maptitle <- renderText({
-    paste("Application amount Across US From", input$map_year[1],"to",input$map_year[2] )
+    paste("Salary level for", input$map_job,"Across US From", input$map_year[1],"to",input$map_year[2] )
   })
   
   output$map <- renderGvis({
-    gvisGeoChart(mapping(), locationvar='state', colorvar="count",
+    gvisGeoChart(mapping(), locationvar='state', colorvar="AvgSalary",
                  options=list(region='US',displayMode="region",resolution="provinces",backgroundColor.strokeWidth = 2,
-                              colorAxis="{colors: ['#9ECAE1','#4292C6', '#2171B5', '#08519C','#08306B']}"))    
+                              colorAxis="{colors: ['#ffffd9','#edf8b1','#c7e9b4','#7fcdbb','#41b6c4','#1d91c0','#225ea8','#253494','#081d58']}",
+                              width = 500,height = 400))    
   })
-  
+
   output$salarytitle <- renderText({
     paste("Top8 Salary States for",input$map_job,"From",input$map_year[1],"to",input$map_year[2] )
   })
   
   output$salary <- renderGvis({
     gvisBarChart(arrange(mapping(),desc(AvgSalary))[1:8,],"state","AvgSalary",
-                 options=list(colors = "['#dd3497']",fontSize = 15,height = 350))
+                 options=list(colors= "['#fd8d3c']",
+                              legend.position ='none',fontSize = 15,height = 400))
   })
-  # ggplot() + 
-  #   # geom_polygon(aes(x = lon, y = lat, fill = AvgSalary,group = group)) +
-  #   # scale_fill_viridis(discrete = F,name = "H1b",option = "D",begin = 1, end = 0.3) +
-  #   geom_polygon(data = map_data("state"), aes(x = long, y = lat, group = group), col = "white", fill = "grey90") +
-  #   geom_point(aes(x = lon, y = lat, size = count,color = AvgSalary),data = mapping(), show.legend = TRUE) +
-  #   scale_size_area(max_size = 12 )+
-  #   scale_colour_gradient(low = "#8E0F2E", high = "darkblue") +
-  #   labs(title = "Application Amount and Salary Across US",
-  #        subtitle = paste("From",input$map_year[1],"to", input$map_year[2])) + 
-  #   theme_void()+
-  #   theme(plot.title = element_text(size=30,colour = "black",face = "bold",vjust = 0.5, hjust = 0.5),
-  #         plot.subtitle = element_text(size=15,colour = "black",face = "bold",vjust = 0.5, hjust = 0.5))
   
   output$companytitle <- renderText({
     paste("Top companies for",input$Cf_job, "in",input$Cf_company,input$Cf_year[1],"to",input$Cf_year[2] )
@@ -228,4 +216,7 @@ server <- function(input, output) {
 }
 
 shinyApp(ui, server)
-
+library(rsconnect)
+rsconnect::setAccountInfo(name='leiduanshiny',
+                          token='D30DF6149333E88DCB6DEAE04430F0E5',
+                          secret='E+p43N3aNhhIvzaNidXioaRWbn85lkcRhip+YWf+')

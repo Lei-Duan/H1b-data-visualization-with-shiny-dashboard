@@ -1,4 +1,3 @@
-
 server <- function(input, output) {
   
   ####reactive####
@@ -75,13 +74,14 @@ server <- function(input, output) {
   })    
   ####render####
   output$maptitle <- renderText({
-    paste("Application amount Across US From", input$map_year[1],"to",input$map_year[2] )
+    paste("Salary level for", input$map_job,"Across US From", input$map_year[1],"to",input$map_year[2] )
   })
   
   output$map <- renderGvis({
-    gvisGeoChart(mapping(), locationvar='state', colorvar="count",
+    gvisGeoChart(mapping(), locationvar='state', colorvar="AvgSalary",
                  options=list(region='US',displayMode="region",resolution="provinces",backgroundColor.strokeWidth = 2,
-                              colorAxis="{colors: ['#9ECAE1','#4292C6', '#2171B5', '#08519C','#08306B']}"))    
+                              colorAxis="{colors: ['#ffffd9','#edf8b1','#c7e9b4','#7fcdbb','#41b6c4','#1d91c0','#225ea8','#253494','#081d58']}",
+                              width = 500,height = 400))    
   })
   
   output$salarytitle <- renderText({
@@ -90,20 +90,9 @@ server <- function(input, output) {
   
   output$salary <- renderGvis({
     gvisBarChart(arrange(mapping(),desc(AvgSalary))[1:8,],"state","AvgSalary",
-                 options=list(colors = "['#dd3497']",fontSize = 15,height = 350))
+                 options=list(colors= "['#fd8d3c']",
+                              legend.position ='none',fontSize = 15,height = 400))
   })
-  # ggplot() + 
-  #   # geom_polygon(aes(x = lon, y = lat, fill = AvgSalary,group = group)) +
-  #   # scale_fill_viridis(discrete = F,name = "H1b",option = "D",begin = 1, end = 0.3) +
-  #   geom_polygon(data = map_data("state"), aes(x = long, y = lat, group = group), col = "white", fill = "grey90") +
-  #   geom_point(aes(x = lon, y = lat, size = count,color = AvgSalary),data = mapping(), show.legend = TRUE) +
-  #   scale_size_area(max_size = 12 )+
-  #   scale_colour_gradient(low = "#8E0F2E", high = "darkblue") +
-  #   labs(title = "Application Amount and Salary Across US",
-  #        subtitle = paste("From",input$map_year[1],"to", input$map_year[2])) + 
-  #   theme_void()+
-  #   theme(plot.title = element_text(size=30,colour = "black",face = "bold",vjust = 0.5, hjust = 0.5),
-  #         plot.subtitle = element_text(size=15,colour = "black",face = "bold",vjust = 0.5, hjust = 0.5))
   
   output$companytitle <- renderText({
     paste("Top companies for",input$Cf_job, "in",input$Cf_company,input$Cf_year[1],"to",input$Cf_year[2] )
