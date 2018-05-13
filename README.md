@@ -12,4 +12,4 @@
 
 #### Here is a screenshot for my Shiny dashboard.(Due to some account problem, error occours when published. Will fix later.)
 
-![screenshot]("pics/`Shiny screenshot`.png")
+![screenshot]("pics/Shiny_screenshot.png")
