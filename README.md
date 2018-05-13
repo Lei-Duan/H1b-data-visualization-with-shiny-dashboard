@@ -13,4 +13,4 @@
 #### Here is a screenshot for my Shiny dashboard.(Due to some account problem, error occours when published. Will fix later.)
 
 
-<img src = "pics/Shiny_screenshot.png", class = "center">
+<img src = "pics/Shiny_screenshot.png" class = "center">
